@@ -1,0 +1,452 @@
+!to "asm.prg", cbm
+
+*=2048
+
+       !by %00000000, %00000000, %01111110
+       !by %00000000, %00000001, %11111111
+       !by %00000000, %00000001, %11100111
+       !by %00000000, %00000101, %11111111
+       !by %00000000, %00010100, %11111110
+       !by %00000000, %00010111, %11111110
+       !by %00000000, %01010111, %11111100
+       !by %00000000, %01011111, %00111000
+       !by %00000000, %01111111, %10000000
+       !by %00000001, %01111110, %11100000
+       !by %00000001, %01111011, %00000000
+       !by %00000001, %11111101, %11000000
+       !by %00000001, %11100110, %00000000
+       !by %00000011, %11111000, %00000000
+       !by %00001111, %10000000, %00000000
+       !by %11111110, %00000000, %00000000
+       !by %11111100, %00000000, %00000000
+       !by %00111100, %00000000, %00000000
+       !by %00011100, %00000000, %00000000
+       !by %00011000, %00000000, %00000000
+       !by %00011000, %00000000, %00000000
+
+       jmp clr
+       jmp load
+       jmp weiter
+       jmp wastun
+       jmp tot
+
+tot    jsr $aefd
+       jsr $b7eb
+       txa
+       ldy #39
+-      sta ($14),y
+       dey
+       bpl -
+       rts
+
+clr    lda #32
+       ldy #27
+-      sta 1036,y
+       sta 1076,y
+       sta 1116,y
+       sta 1156,y
+       sta 1196,y
+       sta 1236,y
+       sta 1276,y
+       sta 1316,y
+       sta 1356,y
+       sta 1396,y
+       sta 1436,y
+       sta 1476,y
+       sta 1516,y
+       dey
+       bne -
+
+       ldy #40
+-      sta 1543,y
+       sta 1583,y
+       sta 1623,y
+       sta 1663,y
+       sta 1703,y
+       sta 1743,y
+       sta 1783,y
+       sta 1823,y
+       sta 1863,y
+       sta 1903,y
+       sta 1943,y
+       sta 1983,y
+       dey
+       bne -
+
+       lda #112
+       sta 1024
+       lda #110
+       sta 1036
+       lda #107
+       sta 1504
+       lda #115
+       sta 1516
+       lda #109
+       sta 1984
+       lda #125
+       sta 1996
+       lda #64
+       ldy #11
+-      sta 1024,y
+       sta 1504,y
+       sta 1984,y
+       dey
+       bne -
+       lda #93
+       sta 1064
+       sta 1104
+       sta 1144
+       sta 1184
+       sta 1224
+       sta 1264
+       sta 1304
+       sta 1344
+       sta 1384
+       sta 1424
+       sta 1464
+       sta 1544
+       sta 1584
+       sta 1624
+       sta 1664
+       sta 1704
+       sta 1744
+       sta 1784
+       sta 1824
+       sta 1864
+       sta 1904
+       sta 1944
+
+       sta 1076
+       sta 1116
+       sta 1156
+       sta 1196
+       sta 1236
+       sta 1276
+       sta 1316
+       sta 1356
+       sta 1396
+       sta 1436
+       sta 1476
+       sta 1556
+       sta 1596
+       sta 1636
+       sta 1676
+       sta 1716
+       sta 1756
+       sta 1796
+       sta 1836
+       sta 1876
+       sta 1916
+       sta 1956
+
+       lda #6
+       ldy #0
+-      sta 55296,y
+       sta 55776,y
+       sta 56256,y
+       iny
+       cpy #13
+       bne -
+       sta 55336
+       sta 55376
+       sta 55416
+       sta 55456
+       sta 55496
+       sta 55536
+       sta 55576
+       sta 55616
+       sta 55656
+       sta 55696
+       sta 55736
+       sta 55816
+       sta 55856
+       sta 55896
+       sta 55936
+       sta 55976
+       sta 56016
+       sta 56056
+       sta 56096
+       sta 56136
+       sta 56176
+       sta 56216
+
+       sta 55348
+       sta 55388
+       sta 55428
+       sta 55468
+       sta 55508
+       sta 55548
+       sta 55588
+       sta 55628
+       sta 55668
+       sta 55708
+       sta 55748
+       sta 55828
+       sta 55868
+       sta 55908
+       sta 55948
+       sta 55988
+       sta 56028
+       sta 56068
+       sta 56108
+       sta 56148
+       sta 56188
+       sta 56228
+
+       rts
+
+weiter lda #%00010000
+-      bit $DC00
+       beq -
+
+       jsr $AEFD
+       jsr $B79E
+       txa
+       asl
+       asl
+       asl
+       clc
+       adc #54
+       cmp #158
+       bcs +
+       lda #158
++      sta $D001
+       lda #112
+       sta $D000
+       lda #0
+       sta $D010
+       lda #32
+       sta 2040
+       lda #11
+       sta $D027
+       lda #1
+       sta $D015
+
+-      lda #%00010000
+       ldx #$24
+--     ldy #0
+---    dey
+       bne ---
+       bit $DC00
+       beq +
+       dex
+       bne --
+       ldx cnt
+       lda tab,x
+       sta $D027
+       dec cnt
+       bpl -
+       lda #7
+       sta cnt
+       bne -
+
++      lda #0
+       sta $D015
+       rts
+
+wastun lda #%00010000
+-      bit $DC00
+       beq -
+
+       jsr $AEFD
+       jsr $B79E
+       inx
+       stx $fb
+       lda $D6
+       sec
+       sbc #14
+       sta $fc
+
+       lda #174
+       sta $D001
+       lda #112
+       sta $D000
+       lda #0
+       sta $D010
+       lda #32
+       sta 2040
+       lda #11
+       sta $D027
+       lda #1
+       sta $D015
+
+loop   ldx #$24
+--     ldy #0
+-      dey
+       bne -
+       lda #%00010000
+       bit $DC00
+       beq fire
+
+       lda wait
+       beq +
+       dec wait
+       jmp ++
+
++      jsr crsr
+
+++     dex
+       bne --
+       ldx cnt
+       lda tab,x
+       sta $D027
+       dec cnt
+       bpl loop
+       lda #7
+       sta cnt
+       bne loop
+
+fire   lda $D001
+       sec
+       sbc #162
+       lsr
+       lsr
+       lsr
+       tax
+       lda $D000
+       cmp #96
+       bcc links
+       cmp #111
+       bcs rechts
+       jmp loop
+
+links  cpx $fb
+       bcs loop
+       txa
+       ora #128
+       sta $02
+-      lda #0
+       sta $D015
+       rts
+
+rechts cpx $fc
+       bcs loop
+       stx $02
+       bcc -
+
+crsr   lda #%00000001
+       bit $DC00
+       bne +
+       lda $D001
+       cmp #170
+       beq +
+       dec $D001
+       lda #8
+       sta wait
+
++      lda #%00000010
+       bit $DC00
+       bne +
+       lda $D001
+       cmp #242
+       beq +
+       inc $D001
+       lda #8
+       sta wait
+
++      lda #%00000100
+       bit $DC00
+       bne +
+       lda $D000
+       cmp #8
+       beq +
+       dec $D000
+       lda #5
+       sta wait
+
++      lda #%00001000
+       bit $DC00
+       bne +
+       lda $D000
+       cmp #255
+       beq +
+       inc $D000
+       lda #5
+       sta wait
+
++      rts
+
+wait   !by 0
+cnt    !by 7
+tab    !by 15,15,15,12,11,11,11,12
+
+load   jsr $AEFD
+       jsr $B79E
+       cpx last1
+       bne +
+       rts
+
++      txa
+       pha
+
+       sei
+       lda $01
+       and #%11111100
+       sta $01
+
+       ldy #0
+       sty $fb
+       sty $fd
+       lda #$b0
+       sta $fc
+       lda #$e0
+       sta $fe
+-      lda ($fb),y
+       tax
+       lda ($fd),y
+       sta ($fb),y
+       txa
+       sta ($fd),y
+       iny
+       bne -
+       inc $fc
+       inc $fe
+       bne -
+
+       lda $01
+       ora #%00000011
+       sta $01
+       cli
+
+       ldx last1
+       lda last2
+       stx last2
+       sta last1
+
+       pla
+       cmp last1
+       bne +
+       rts
+
++      tax
+       sta last1
+       and #$0f
+       clc
+       adc #65
+       sta einer
+       txa
+       lsr
+       lsr
+       lsr
+       lsr
+       clc
+       adc #65
+       sta zehner
+       lda #6
+       sta $b7
+       lda #1
+       sta $b9
+       lda #8
+       sta $ba
+       lda #<filename
+       sta $bb
+       lda #>filename
+       sta $bc
+       lda #0
+       jmp $f4a5
+
+filename !tx "BILD"
+zehner   !by 0
+einer    !by 0
+last1    !by 255
+last2    !by 255

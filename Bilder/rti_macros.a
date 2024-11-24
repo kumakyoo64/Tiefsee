@@ -1,0 +1,103 @@
+!zone RTI_Macros {
+
+!macro COPY_CHAR_ROM from,to {
+			lda $01
+			and #%11111011
+			sta $01
+
+            lda #>from
+            sta $FC
+            lda #>to
+            sta $FE
+            ldy #$00
+            sty $FB
+            sty $FD
+
+            ldy #0
+            ldx #8
+-           lda ($FB),y
+            sta ($FD),y
+            iny
+            bne -
+            inc $FC
+            inc $FE
+            dex
+			bne -
+
+            lda $01
+            ora #%00000100
+            sta $01
+}
+
+!macro COPY_DATA start,end,to {
+            lda #<start
+            sta $FB
+            lda #>start
+            sta $FC
+            lda #<to
+            sta $FD
+            lda #>to
+            sta $FE
+            ldy #0
+-           lda ($FB),y
+            sta ($FD),y
+            inc $FB
+            bne +
+            inc $FC
++           inc $FD
+            bne +
+            inc $FE
++           lda $FB
+            cmp #<end
+            bne -
+            lda $FC
+            cmp #>end
+            bne -
+}
+
+!macro COPY_CHAR char_from, char_to, col_from, col_to {
+            lda #<col_from
+            sta $FB
+            lda #>col_from
+            sta $FC
+            lda #<col_to
+            sta $FD
+            lda #>col_to
+            sta $FE
+            jsr COPY
+            lda #<char_from
+            sta $FB
+            lda #>char_from
+            sta $FC
+            lda #<char_to
+            sta $FD
+            lda #>char_to
+            sta $FE
+            jsr COPY
+}
+
+!macro COPY {
+            ldx #$B
+--          ldy #$A
+-           lda ($FB),y
+            sta ($FD),y
+            dey
+            bpl -
+            clc
+            lda $FB
+            adc #$B
+            sta $FB
+            bcc +
+            inc $FC
++           clc
+            lda $FD
+            adc #40
+            sta $FD
+            bcc +
+            inc $FE
++           dex
+            bne --
+            rts
+}
+
+}

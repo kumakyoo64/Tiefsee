@@ -1,0 +1,1201 @@
+L 0
+. goto10
+
+# Variablen
+# ---------
+# a0: 1 = War schon mal am Fenster
+# a1: 1 = War schon mal in der Kajüte
+# a2: 1 = Hab' Truhe schon geöffnet
+# a3: 1 = Bin Leiter schon hochgeklettert
+# a4: 1 = Erstes Mal Luke öffnen
+# a5: 1 = Erstes Mal Loch in Abdeckung
+# ge: 1 = gewunken, 2 = Stinkefinger gezeigt
+# tr: 1 = Truhe geschlossen
+# sl: 1 = Hab den Schlüssel
+# sc: 1 = Schrank offen
+# jo: 1 = Joystick genommen; 2 = steckt in Port 1; 3 = steckt in Port 2
+# es: 1 = Ersatzsauerstoff geöffnet
+# an: 1 = Anleitung genommen
+# ab: 1 = Abdeckung weg; 2 = Abdeckung ganz weg
+# mo: 1 = Joystick wurde bewegt
+#
+# sf: Sauerstoff in Prozent
+# al: Alkoholmenge
+# iv: Anzahl des Inventars
+#
+# cl,lo,wt,tu,sh,hd: Assemblerprogramme
+
+L 10
+# Assembler und Zeichensatz nachladen
+. ifcl=0thenprint"{clr}"chr$(14)chr$(8):cl=1:load"asm",8,1
+. ifcl=1thencl=2111:load"char",8,1
+# Assemblerroutinen -> Variablen
+. lo=cl+3
+. wt=cl+6
+. tu=cl+9
+
+# Bilder anzeigen und ausschalten
+. sh=49152
+. hd=sh+3
+. pokehd,96
+
+# Abkürzungen beim Anzeigen
+. a$="{rght}{rght}{rght}{rght}{rght}{rght}{rght}{rght}{rght}{rght}{rght}{rght}{rght}{rght}"
+. b$="{down}{down}{down}{down}{down}{down}{down}{down}{down}{down}{down}{down}{down}"
+
+# Inventar, Sauerstoff
+. dimiv(10):iv(0)=1:iv=1
+. sf=80
+
+# Zum Debuggen entsprechend Zeile auskommentieren
+# . goto2000 | Blick aus dem Fenster
+# . a0=1:goto3000 | Bildschirm
+# . a0=1:goto5000 | Kommandobereich
+# . a0=1:a1=1:goto7000 | Kajüte
+# . a0=1:a1=1:goto9000 | Truhe
+# . a0=1:a1=1:sl=1:iv=4:iv(1)=2:iv(2)=3:iv(3)=4:ab=1:ge=2:goto12000
+
+# Zum Start
+. goto1000
+
+# ---- U-Boot im Sonderangebot -------------------------------------
+
+L 1000
+B 0 sonderangebot2
+C
+T Beim Discounter gab es U-Boote im Sonderangebot. Da du schon immer mal
+T nach der Titanic suchen wolltest, hast du natürlich sofort zugeschlagen.
+T
+T Ein Freund hat dich noch gewarnt: "Das ist doch bestimmt wieder so
+T ein dämliches Adventure. Mach' das nicht!"
+T
+T Du hast ihn ignoriert, das U-Boot ins Wasser gelassen und bist damit
+T über den Ärmelkanal in den Atlantik gefahren. Dort bist du
+T abgetaucht.
+W !
+Q
+. goto2000
+
+# ---- Blick aus dem Fenster ---------------------------------------
+
+L 2000 Bei der Titanic
+B 1 titanic2
+C
+. on1-a0gosub2050:a0=1
+T Du schaust aus dem Fenster. Vor dir liegt die Titanic. Ein großer
+T Krake hat davon Besitz ergriffen und schaut dich an.
+. ongegosub2100,2150
+W ?
+A ge=0 2200 Freundlich winken
+A ge=0 2250 Den Stinkefinger zeigen
+A 5000 Im U-Boot umsehen
+I 1 gosub60400:goto2000
+I 2 gosub2350:goto2000
+I 3 gosub2400:goto2000
+I 4 gosub2450:goto2000
+Q
+
+L 2050
+T Die Titanic war nicht schwer zu finden. Gleich beim ersten Versuch
+T landest du neben ihr.
+T
+. return
+
+L 2100
+T
+T Du freust dich über die Gesellschaft des Kraken.
+S
+. return
+
+L 2150
+T
+T Du fühlst dich unwohl, wenn du den Kraken siehst.
+S
+. return
+
+L 2200 Freundlich winken
+. ge=1
+C
+T Du winkst dem Kraken freundlich zu.
+. goto2300
+
+L 2250 Stinkefinger zeigen
+. ge=2
+C
+T Du streckst dem Kraken deinen Stinkefinger entgegen. Dem hast du
+T es aber gezeigt, denkst du dir.
+. goto2300
+
+L 2300
+T
+T Der Krake schaut dich neugierig an.
+T
+T Nach einer Weile wendest du dich vom Fenster ab.
+S
+W !
+Q
+. goto5000
+
+L 2350 Schluessel
+C
+T Du wedelst mit dem Schlüssel vor dem Fenster rum. Der Krake scheint
+T sich davon nicht beeindrucken zu lassen.
+W !
+Q
+. return
+
+L 2400 Joystick
+C
+T Du pappst den Joystick mit seinen vier Saugnäpfen an das Fenster.
+T Vielleicht versteht der Krake ja was von Saugnäpfen. Nach einer
+T Weile löst sich der Joystick ab und du nimmst ihn wieder an dich.
+W !
+Q
+. return
+
+L 2450 Anleitung
+C
+T Du suchst in der Anleitung nach irgendwas zu Kraken, findest dazu
+T aber nichts. Dafür bleiben deine Augen an einer anderen Stelle
+T hängen:
+T
+T "Für neuen Sauerstoff müssen Sie einfach nur das Ventil der
+T Ersatzsauerstoffflasche öffnen", steht da.
+W !
+Q
+. return
+
+# ---- Bildschirm anschauen ----------------------------------------
+
+L 3000 Den Bildschirm anschauen
+. ifjo=2thengosub3050:goto3002
+B 4 Bildschirm
+C
+. onjo+1gosub3100,3100,3150,3200
+S
+W !
+Q
+. goto5000
+
+L 3050
+B 15
+. return
+
+L 3100
+T Auf dem Bildschirm ist so eine Art Logbuch zu sehen. Da steht was
+T von 38911 Bytes, dass die Titanic gesucht wird und am Ende steht nur
+T noch RUM.
+T
+T Rum klingt gut. Schade, dass du keinen dabei hast.
+. return
+
+L 3150
+T Auf dem Bildschirm ist das Titelbild von Gold Quest VI zu sehen:
+T Ein Drache speit blaues Feuer.
+. return
+
+L 3200
+. ifmo=0goto3100
+T Auf dem Bildschirm ist wieder das Logbuch zu sehen. Jetzt steht da
+T was davon, dass das Auftauchen gesucht würde.
+. return
+
+# ---- Der Kommandobereich -----------------------------------------
+
+L 5000 Kommandobereich
+. ifjo=2thengosub5300:goto5002
+B 2 kommando
+L 5002
+C
+T Du befindest dich im Kommandobereich des U-Boots. Vor dir siehst du
+T einen Bildschirm, einen Knopf und ein Bullauge.
+S
+W ?
+A 3000 Den Bildschirm anschauen
+A 5400 Den Knopf drücken
+A 2000 Durch das Bullauge sehen
+A 7000 Dich umdrehen
+I 1 gosub60400:goto5000
+I 2 gosub5050:goto5000
+I 3 gosub5100:goto5000
+I 4 gosub5150:goto5000
+Q
+
+L 5050 Schluessel
+C
+T Du suchst den Kommandobereich nach einem Schlüsselloch ab. Nach
+T einiger Zeit gibst du erfolglos auf.
+W !
+Q
+. return
+
+L 5100 Joystick
+. ifjo=2goto5200
+. ifjo=3goto5350
+C
+T Du stellst den Joystick auf die Kommandofläche und wackelst etwas am
+T Hebel herum. Dann drückst du ein paar mal die Feuerknöpfe. "Peng,
+T peng", sagt du, weil sich nichts tut.
+T
+T Vermutlich muss man zuerst den Stecker irgendwo einstecken, denkst
+T du dir, kannst aber keine passende Stelle finden.
+W !
+Q
+. return
+
+L 5150 Anleitung
+C
+T Die Anleitung beglückwünscht dich dazu, ein einmaliges Einweg-U-Boot
+T erstanden zu haben.
+W !
+Q
+. return
+
+L 5200
+B 15
+C
+T Auf dem Bildschirm ist das Titelbild von Gold Quest VI zu sehen:
+T Ein Drache speit blaues Feuer.
+T
+T Begeistert spielst du das Spiel. Es handelt von einem Zwerg der
+T durch Labyrinthe rennt, um einen anderen Zwerg zu retten.
+T
+. ifrnd(0)<0.1goto5250
+T Am Ende wird dein Zwerg gefangen.
+W !
+Q
+. return
+
+L 5250
+T Am Ende hast du Fulgore besiegt!
+W !
+Q
+. return
+
+L 5300
+B 16
+. return
+
+L 5350
+C
+T Du stellst den Joystick auf die Kommandofläche und drückst ihn nach
+T vorne. Plötzlich verschwindet das Logbuch auf dem Bildschirm.
+T Dann baut es sich wieder haargenau so auf,
+T wie es vorher war. Währenddessen hörst du Geräusche aus den
+T Aufbauten der Kabine.
+T
+T Du schaust nochmal genauer hin: Es ist nicht ganz genau das
+T gleiche, was da steht. Statt der Titanic wird jetzt "Steigen"
+T gesucht.
+W !
+Q
+. mo=1:return
+
+L 5400 Knopf drücken
+C
+. onmogoto5450
+T Du drückst den Knopf. Er leuchtet kurz auf und erlischt dann wieder.
+T Sonst passiert nichts.
+T
+T Das ist auch kein Wunder, es steht ja dran, dass man den drücken
+T soll, um zur Titanic zu tauchen, aber da bist du ja schon.
+S
+W !
+Q
+. goto5000
+
+L 5450
+T Du drückst den roten Knopf. Er leuchtet kurz auf.
+T
+T Dann geht durch das U-Boot ein Vibrieren und es schwebt langsam nach
+T oben.
+W !
+Q
+. goto13000
+
+
+# ---- Schrank anschauen -------------------------------------------
+
+L 6000 Den Schrank anschauen
+. ifjo>1goto6850
+B 7+5*sc Schrank
+C
+. onsc+1gosub6150,6200
+S
+W ?
+A 6050 Die Schubladen öffnen
+A sc=1 6500 Ein Bier nehmen.
+A sc=0 6100 Den Schrank öffnen
+A sc=1 6250 Den Schrank schließen
+A 6600 Zurück zur Kajüte
+I 1 6450
+I 2 6300
+I 3 gosub6350:goto6000
+I 4 gosub6800:goto6000
+Q
+. goto7000
+
+L 6050
+. onan+1goto6650,6700
+
+L 6100
+C
+T Du versuchst die Schranktüren zu öffnen. Es klappt nicht, sie sind
+T verschlossen. Nach einiger Zeit gibst du auf.
+W !
+Q
+. goto6000
+
+L 6150
+T Du schaust dir den Schrank genauer an. Oben hat er fünf
+T Schubladen. Unten gibt es zwei Schranktüren.
+. return
+
+L 6200
+T Im Schrank befinden sich 10 Bierkisten.
+. return
+
+L 6250
+C
+T Du machst den Schrank zu und schließt ihn gründlich ab.
+W !
+Q
+. sc=0:goto6000
+
+L 6300
+. onscgoto6250
+C
+T Du steckst den Schlüssel in das Schlüsselloch am Schrank und drehst
+T ihn rum. Er passt wie angegossen. Du öffnest die beiden
+T Schranktüren.
+W !
+Q
+. sc=1:goto6000
+
+L 6350
+C
+. onscgoto6400
+T Du pappst den Joystick mit den Saugnäpfen an die Schranktüren und
+T ziehst kräftig. Der Joystick löst sich wieder ab. So kriegst du den
+T Schrank nicht auf.
+W !
+Q
+. return
+
+L 6400
+T Du suchst zwischen den Bierkästen nach einer Stelle, wo du den
+T Stecker vom Joystick einstecken kannst, findest aber nichts.
+W !
+Q
+. return
+
+L 6450
+. gosub60400:ifsc=0oral<6goto6000
+C
+T Du atmest mehrfach tief ein. Dann geht es wieder etwas besser. Du
+T solltest dich besser etwas hinlegen.
+T
+T Sorgfältig verschließt du den Schrank, dann torkelst du zum Bett
+T rüber und legst dich hin.
+W !
+Q
+. al=-200:goto8100
+
+L 6500
+C
+. a=1:gosub61000:ifa>0goto6550
+T Du nimmst ein Bier aus dem Schrank.
+W !
+Q
+. goto6000
+
+L 6550
+T Du hast schon alle Hände voll. Noch ein Bier kannst du nicht mehr
+T tragen.
+W !
+Q
+. goto6000
+
+L 6600
+C
+T Du verschließt den Schrank sorgfältig, dann stehst du
+T wieder auf.
+W !
+Q
+. sc=0:goto7000
+
+L 6650
+C
+T Du öffnest eine Schublade nach der anderen. In der letzten findest
+T du ein Anleitungsheft.
+T
+. a=4:gosub61000:ifa>0goto6750
+T Du nimmst es an dich.
+W !
+Q
+. an=1:goto6000
+
+L 6700
+C
+T Du öffnest eine Schublade nach der anderen. Sie sind alle leer.
+T Enttäuscht schließt du sie wieder.
+W !
+Q
+. goto6000
+
+L 6750
+T Da du nichts mehr tragen kannst, lässt du die Anleitung schweren
+T Herzens in der Schublade liegen.
+W !
+Q
+. goto6000
+
+L 6800
+C
+T In der Anleitung steht, dass sich die Anleitung in einer der
+T Schubladen des Schranks befindet.
+W !
+Q
+. return
+
+L 6850
+C
+T Das Kabel des Joysticks ist nicht lang genug, um an den Schrank ran
+T zu kommen.
+W !
+Q
+. goto7000
+
+# ---- Kajüte ------------------------------------------------------
+
+L 7000 Kajüte, Truhe offen
+. ifjo>1goto7750
+B 5+tr Innen1/Innen2
+L 7005
+. ifal>=6goto7600
+. on1-a1gosub7050:a1=1
+C
+T Du befindest dich in der Kajüte. Links steht ein Schrank.
+T Rechts befindet sich ein Bett unter einem Metallkasten.
+T Hinter dem Schrank steht eine
+. ontr+1gosub7100,7150
+T dahinter führt eine Leiter nach oben.
+S
+W ?
+A 6000 Den Schrank anschauen
+A ab=0 8000 Dich schlafen legen
+A ab>0 8000 Dich hinlegen
+A tr=0 7350 In die Truhe schauen
+A tr=0 7200 Die Truhe schließen
+A tr=1 7250 Die Truhe öffnen
+A 10000 Die Leiter hochklettern
+A 5000 Dich umdrehen
+I 1 gosub60400:goto7000
+I 2 7400
+I 3 gosub7300:goto7000
+I 4 7550
+Q
+
+L 7050
+C
+T Du drehst dich um. Als erstes erblickst du die geöffnete Schatztruhe.
+T
+T "Na," sagst du dir, "das ist ein klares Zeichen." Das besagt nämlich,
+T dass du dich nie und nimmer in einem Adventure befinden kannst, denn
+T da wäre jede Schatztruhe erst mal zu, und man müsste herausfinden, wie
+T man sie öffnet...
+W !
+Q
+. return
+
+L 7100
+T geöffnete Schatztruhe,
+. return
+
+L 7150
+T alte Schatztruhe,
+. return
+
+L 7200 Die Truhe schließen
+. ifjo>1goto7650
+C
+T Du ziehst am Deckel der Truhe. Der Deckel fällt mit einem lauten
+T Kawumm runter und die Schlösser rasten ein.
+W !
+Q
+. tr=1:a2=0:goto7000
+
+L 7250 Die Truhe öffnen
+. ifjo>1goto7650
+. ifsl=1then9000
+C
+T Die Verschlüsse sind eingerastet. Man bräuchte einen Schlüssel, um
+T sie zu öffnen.
+W !
+Q
+. goto7000
+
+L 7300
+. ifjo>1goto7700
+C
+T Du hältst den Joystick am Kabel und lässt ihn Jojo-artig auf und ab
+T hüpfen. Es passiert nichts. Das scheint nicht die richtige Art zu
+T sein, wie man einen Joystick verwendet...
+W !
+Q
+. return
+
+L 7350 In die Truhe schauen
+. ifjo>1goto7650
+C
+T In dem Moment, als du dich über die Truhe beugst, fängt das U-Boot
+T an zu wackeln. Vermutlich ein Seebeben, davon soll es hier in der
+T Gegend einige geben.
+T
+T Du kannst gerade noch den Kopf wegziehen, als der Deckel der Truhe
+T mit einem lauten Kawumm runterknallt.
+W !
+Q
+. tr=1:a2=0:goto7000
+
+L 7400 Schluessel
+C
+T Während du überlegst, was man mit dem Schlüssel hier so machen
+T könnte, wirfst du ihn ein paar mal in die Luft und fängst ihn wieder
+T auf.
+T
+. ifsf>70goto7500
+. ones+1goto7450,7500
+
+L 7450
+T Als du dabei einmal unaufmerksam bist, fällt der Schlüssel auf den
+T Boden und springt unter das Bett.
+T
+T Schnell kriechst du hinterher.
+W !
+Q
+. a=r-129:sl=0:gosub61100:goto11000
+
+L 7500
+T Eine gute Idee kommt dir dabei aber nicht. Also steckst du den
+T Schlüssel wieder ein.
+W !
+Q
+. goto7000
+
+L 7550
+C
+T In der Anleitung steht, dass die Konzentration leiden kann, wenn der
+T Sauerstoffgehalt in der Kabine zu gering ist.
+W !
+Q
+. goto7000
+
+L 7600
+C
+T Vom Umdrehen wird dir ganz übel. Benommen setzt du dich auf's Bett
+T und legst dich hin.
+W !
+Q
+. al=-200:sc=0:goto8100
+
+L 7650
+C
+T Das Joystick-Kabel ist nicht lang genug, um bis zur Truhe zu kommen.
+W !
+Q
+. goto7000
+
+L 7700
+C
+T Du wackelst am Joystick rum. Dann drückst du ein paarmal Feuer. Es
+T scheint nichts zu passieren.
+W !
+Q
+. return
+
+L 7750
+B 23+tr Innen1a/Innen2a
+. goto7005
+
+# ---- Im Bett -----------------------------------------------------
+
+L 8000 Dich schlafen legen
+. ifab>0goto12000
+. syshd
+C
+. ifsf<70goto8050
+T Du legst dich in die Koje und bist fast sofort eingeschlaffen. Nach
+T einem erholsamen Schlaf, stehst du wieder auf.
+W !
+Q
+. sf=sf-30:goto7000
+
+L 8050
+T Du legst dich in die Koje und schließt die Augen. Dann versuchst du
+T ganz ruhig zu atmen, aber das fällt dir schwer, da die
+T Sauerstoffmenge in der Kabine zu niedrig ist. Du wälltst dich noch
+T ein wenig auf dem Bett hin und her, dann stehst du wieder auf. Es hat
+T einfach keinen Zweck. So kannst du nicht schlafen.
+W !
+Q
+. goto7000
+
+L 8100
+B 13
+C
+T Du träumst von einer Sex-Orgie mit ganz vielen Leuten. Es ist total
+T geil. Aber dann plötzlich...
+W !
+Q
+C
+T ...hast du das Gefühl, keine Luft mehr zu kriegen. Du kriegst einen
+T Schreck, wachst auf und setzt dich kerzengerade hin.
+T Dabei stößt du dir den Kopf an den Einbauten über dir.
+T
+T Ein Stück der Abdeckung bricht heraus und fällt auf den Fußboden.
+W !
+Q
+. ab=1:sf=sf-30:goto12000
+
+# ---- Blick in die Truhe ------------------------------------------
+
+L 9000 Truhe mit Schlüssel öffnen
+. on1-a2gosub9400:a2=1
+B 11+(jo>0)
+. tr=0
+C
+. onjo+1gosub9050,9100,9100,9100
+S
+W ?
+A jo=0 9150 Den Joystick nehmen
+A 9250 Die Truhe verschließen
+A 7000 Zurück zur Kajüte
+I 1 gosub60400:goto9000
+I 2 9300
+I 3 gosub9350:goto9000
+I 4 gosub9450:goto9000
+Q
+
+L 9050
+T Du schaust in die geöffnete Truhe. In der Truhe findest du einen
+T großen Joystick.
+. return
+
+L 9100
+T Du schaust in die geöffnete Truhe. Die Truhe ist leer.
+. return
+
+L 9150 Den Joystick nehmen
+. a=3:gosub61000:ifa>0goto9200
+. jo=1
+C
+T Du nimmst den Joystick an dich.
+W !
+Q
+. goto9000
+
+L 9200
+C
+T Du hast bereits alle Hände voll. Den Joystick kannst du nicht auch
+T noch tragen.
+W !
+Q
+. goto9000
+
+L 9250 Die Truhe verschließen
+C
+T Du ziehst an dem Deckel, bis er mit einem lauten Kawumm zu fällt.
+T Zuschließen brauchst du sie nicht, die Schlösser sind automatisch
+T eingerastet.
+. tr=1:a2=0
+W !
+Q
+. goto7000
+
+L 9300
+C
+T Du klappst den Deckel der Truhe runter und verschließt die Schlösser
+T mit dem Schlüssel. Also genauer: Du willst die Schlösser mit dem
+T Schlüssel verschließen, aber sie sind schon von alleine eingerastet.
+. tr=1:a2=0
+W !
+Q
+. goto7000
+
+L 9350
+. a=r-129:gosub61100:jo=0
+C
+T Du legst den Joystick vorsichtig in die Truhe zurück.
+W !
+Q
+. return
+
+L 9400
+C
+T Du steckst den Schlüssel in einen der Verschlüsse. Der Schlüssel
+T passt. Und noch besser: Er passt auch beim anderen Verschluss.
+T Vorsichtig öffnest du die Truhe.
+W !
+Q
+. return
+
+L 9450
+C
+T In der Anleitung steht, dass sich in der Truhe ein Joystick befindet.
+W !
+Q
+. return
+
+# ---- Auf der Leiter ----------------------------------------------
+
+L 10000 Die Leiter hochklettern
+. ifjo>1goto10500
+. on1-trgoto10050
+B 8 Luke
+C
+. on1-a3gosub10100:a3=1
+T Über dir ist die Luke, neben der Leiter vor dir befindet sich ein
+T Schild.
+S
+W ?
+A 10150 Die Luke öffnen
+A 10200 Das Schild lesen
+A 10400 Wieder runterklettern
+I 1 gosub60400:goto10000
+I 2 gosub10250:goto10000
+I 3 gosub10300:goto10000
+I 4 gosub10450:goto10000
+Q
+
+L 10050
+C
+T Du versucht, an die Leiter heranzukommen, aber ohne die Truhe zu
+T schließen kommst du nicht ran.
+W !
+Q
+. goto7000
+
+L 10100
+T Du steigst auf die Truhe und kletterst die Leiter hoch. Oben endet
+T die Leiter an einer Luke.
+T
+. return
+
+L 10150 Die Luke öffnen
+C
+. on1-a4gosub10350:a4=1
+T Du entriegelst die Luke und stemmst dich dagegen. Nichts passiert.
+T Der Druck des Meerwassers ist einfach zu hoch. Also verriegelst du
+T die Luke wieder.
+W !
+Q
+. onslgoto10000
+. a=2:gosub61000:ifa>0goto10000
+. sl=1
+C
+T Kaum hast du die Luke fertig verriegelt,
+T fällt ein kleiner Schlüssel auf den Boden. Der war wohl ziemlich
+T unbrauchbar an der Luke befestigt gewesen.
+T
+T Schnell kletterst du die Leiter runter und hebst den Schlüssel auf.
+W !
+Q
+. a3=0
+. goto7000
+
+L 10200 Das Schild lesen
+C
+T Auf dem Schild steht: "6510 Inside", was immer das heißen mag.
+W !
+Q
+C
+. goto10000
+
+L 10250 Schluessel
+. a=r-129:gosub61100:sl=0
+C
+T Du befestigst den Schlüssel an der Luke. Ist nicht ganz einfach, so
+T richtig gut hält er nicht. Aber das ist dir im Moment egal.
+W !
+Q
+. return
+
+L 10300 Joystick
+C
+T Du befestigst den Joystick mit dem Kabel am Griff und lässt ihn
+T neben dir runterhängen. Er baumelt etwas hin und her.
+T
+T Eine Weile lang schaust du ihm dabei zu, aber dann hast du das
+T Gefühl, dass das nichts bringt. Also knotest du ihn wieder ab.
+W !
+Q
+. return
+
+L 10350
+T "Es muss doch ein Adventure sein," denkst du dir, "auf so eine blöde
+T Idee, am Meeresgrund die Einstiegsluke eines U-Boots zu öffenen, kommt
+T man sonst nicht."
+T
+. return
+
+L 10400
+. a3=0:goto7000
+
+L 10450
+C
+T In der Anleitung steht, dass es sich beim Bordcomputer um einen
+T modernen C64 handelt, der von dem neuartigen 6510 Prozessor
+T gesteuert wird.
+W !
+Q
+. return
+
+L 10500
+C
+T Das Joystick-Kabel ist nicht lang genug, um die Leiter hoch zu
+T klettern.
+W !
+Q
+. goto7000
+
+# ---- Unter dem Bett ----------------------------------------------
+
+L 11000
+B 9
+C
+T Du liegst unter dem Bett. Vor dir befindet sich eine grüne
+T Ersatzsauerstoffflasche mit einem Ventil. Direkt vor der Flasche
+T liegt ein Schlüssel.
+S
+W ?
+A es=0 11050 Das Ventil aufdrehen
+A 11100 Den Schlüssel nehmen
+I 1 11150
+I 3 11200
+I 4 11250
+Q
+
+L 11050
+. sf=100:es=1
+C
+T Du drehst das Ventil auf. Frischer Sauerstoff strömt in die Kabine.
+T Erleichtert atmest du auf.
+W !
+Q
+. goto11000
+
+L 11100
+. a=2:gosub61000:sl=1
+C
+T Du nimmst den Schlüssel wieder an dich. Dann kriechst du mühsam
+T unter dem Bett hervor.
+W !
+Q
+. goto7000
+
+L 11150
+C
+T So, wie du da unter dem Bett eingeklemmt liegst, kannst du das Bier
+T nicht öffnen.
+W !
+Q
+. goto11000
+
+L 11200
+C
+T Du liegst auf dem Kabel des Joysticks und kommst so an das Gerät
+T nicht ran.
+W !
+Q
+. goto11000
+
+L 11250
+C
+T Unter dem Bett ist es zu dunkel, um die Anleitung lesen zu können.
+W !
+Q
+. goto11000
+
+# ---- Blick auf Armatur vom Bett aus ------------------------------
+
+L 12000
+B 11+3*ab
+C
+. onjogosub12300,12350,12350
+. on1-a5gosub12250:a5=1
+T Du siehst ein Loch in der Abdeckung.
+S
+W ?
+A 7000 Aufstehen
+I 1 12050
+I 2 12100
+I 3 12150
+I 4 12200
+Q
+
+L 12050 Bier
+. ifab=2thengosub60400:goto12000
+C
+T Du nimmst die Bierflasche und schlägst damit kräftig gegen die
+T Abdeckung. Beim dritten Schlag platzt die Flasche und ein weiteres
+T Stück von der Abdeckung bricht ab.
+W !
+Q
+. a=r-129:gosub61100:ab=2:goto12000
+
+L 12100 Schlüssel
+C
+T Du versuchst den Schlüssel in die Steckdose zu stecken, aber er
+T passt nicht rein.
+W !
+Q
+. goto12000
+
+L 12150 Joystick
+C
+. onabgosub12400,12450
+T
+T Dann stehst du auf.
+W !
+Q
+. goto7000
+
+L 12200 Anleitung
+C
+T In der Anleitung steht, dass es sich bei den beiden Steckdosen um die
+T Controlports des U-Boots handelt. Der eine dient zum Vertreiben der
+T Langeweile, der andere zum Steuern des U-Boots.
+W !
+Q
+. goto12000
+
+L 12250
+C
+T Du erschrickst. Ein Alien schaut dich an. Doch dann merkst du,
+T dass es nur zwei Steckdosen sind.
+T
+. return
+
+L 12300
+. return
+
+L 12350
+T Du legst dich ins Bett. Ungeschickt, wie du bist, ziehst du dabei aus
+T Versehen, den Joystick aus der Steckdose.
+T
+. jo=1:return
+
+L 12400
+T Du steckst den Stecker des Joysticks in die linke Steckdose.
+. jo=2:return
+
+L 12450
+T Du kannst dich nicht recht entscheiden, in welche Steckdose du den
+T Stecker stecken willst. Aber da du dich entscheiden musst,
+T entscheidest du dich halt.
+T
+. ifrnd(0)<0.3goto12400
+T Du steckst den Stecker des Joysticks in die rechte Steckdose.
+. ifge=2then13250
+. jo=3:return
+
+# ---- Ende --------------------------------------------------------
+
+L 13000
+B 18+ge
+C
+. onge+1gosub13050,13100
+T
+T Du fährst wieder zurück in den Ärmelkanal und nach Hause.
+T Dort steigst du aus, ziehst das U-Boot an Land und gehst direkt zu
+T deinem Freund.
+W !
+Q
+C
+. on ge+1goto13150,13200
+
+L 13050
+T Der Heimweg ist ziemlich langweilig. Das spannendste, was dabei
+T passiert, ist, dass ab und an ein Fisch am Fenster vorbeischwimmt.
+T Einmal waren es sogar zwei.
+. return
+
+L 13100
+T Der Krake begleitet dich ein Stück. Dabei winkt er dir immer mal
+T wieder mit einem seiner Arme zu. Du winkst zurück. Der Krake scheint
+T sich über deine Gesellschaft gefreut zu haben.
+. return
+
+L 13150
+T "Du hattest recht!", sagst du, "es war ein Adventure. Da waren so
+T wenig Fische untewegs, das war völlig unrealistisch!"
+T
+T Der Freund nickt, dann läd er dich zum Grillen ein. Beim Grillen
+T erzählst du ihm, was du alles erlebt hast.
+. goto14000
+
+L 13200
+T "Siehst du!", sagst du, "es war kein Adventure. Mich hat am Ende
+T sogar ein Krake begleitet und der hat mir die ganze Zeit freundlich
+T zugewunken!"
+T
+T Der Freund zuckt mit den Schultern, dann läd er dich zum Grillen
+T ein. Beim Grillen erzählst du ihm, was du alles erlebt hast.
+. goto14000
+
+L 13250
+W !
+Q
+C
+T Kaum hast du den Stecker eingesteckt,
+T durchfährt eine Erschütterung das U-Boot und du fällst aus dem Bett.
+T
+T Schnell rappelst du dich auf und rennst zum Fenster. Der Krake hat
+T sich des U-Boots bemächtigt. Er schwimmt damit durch den Ozean.
+T
+T Hastig versucht du irgendwie das Tier wieder loszuwerden, aber der
+T Krake lässt sich noch nicht mal durch lautes Rülpsen beeindrucken.
+W !
+Q
+B 20
+C
+T Nach einiger Zeit erreicht er die Wasseroberfläche und platziert das
+T U-Boot am Strand einer Insel. So schnell du kannst, kletterst du zur
+T Luke rauf, öffnest diese, springst ins Wasser und schwimmst zur Insel.
+T
+T Dort setzt du dich in den Schatten einer Palme und schaust zum Kraken.
+T Der zeigt dir gerade acht Stinkefinger.
+W !
+Q
+B 21
+C
+T Dann krallt er sich dein U-Boot und zieht es mit sich zum
+T Meeresgrund hinab.
+T
+T Die restlichen Jahre deines Lebens verbringst du auf dieser einsamen
+T Insel und fragst dich die ganze Zeit, ob das jetzt ein Adventure
+T war, oder nicht.
+. goto14000
+
+L 14000
+W !
+Q
+C
+B 22
+T Kredite:
+T
+. printa$"Idee:     Berni
+. printa$"Programm: Berni
+. printa$"Grafik:   Berni
+. printa$"Sound:    Floppy
+T
+T Hinweis:
+T
+T Zwischendurch kommt das Spiel "Gold-Quest VI" vor. Das ist ein echt
+T geniales Spiel von Sledgie und Shmendric und noch ein paar weiteren
+T Leuten. Wirklich sehr zu empfehlen!
+L 14050
+. goto14050
+
+# ---- System-Routinen und GOSUBs ----------------------------------
+
+L 60000 clrscr
+. syscl:print"{home}{grn}":return
+
+L 60010 was willst du tun + inventar
+. print"{home}"b$a$"{wht}Was willst du tun?":gosub60100
+. print"{home}{down}{lgrn}"b$:return
+
+L 60020 weiter + inventar
+. print
+. ifpeek(214)<13thenprint:goto60021
+. printa$"{wht}Weiter";:y=peek(214)
+
+L 60100 inventar
+#. print"{home}"a$"{pur}"fre(0)
+. print"{home}"b$"{rght}{yellow}Inventar:{down}{gry3}"
+. fori=0toiv
+. ifiv(i)=1thenprint"{rght}Bierflasche"
+. ifiv(i)=2thenprint"{rght}Schl]ssel"
+. ifiv(i)=3thenprint"{rght}Joystick"
+. ifiv(i)=4thenprint"{rght}Anleitung"
+. next
+. return
+
+L 60200 Sauerstoffanzeige
+. sf=sf-2*rnd(0):ifsf<10goto60220
+. poke646,5:ifsf<74thenpoke646,7:ifsf<49thenpoke646,2:ifsf<24thenpoke646,4
+. printa$"{down}Sauerstoff:"int(sf+1)"{left}%":return
+
+L 60220 Tot
+. syshd:fori=55336to56295step40:systu+3,i-40,0:systu+3,i,11:forsf=0to10:nextsf,i
+. print"{clr}{gry1}"
+T Plötzlich wird dir schwarz vor Augen. Deine Sinne schwinden.
+. printb$a$"{up}{up}{up}{up}{wht}Weiter";y=peek(214)
+Q
+. print"{clr}{gry1}"
+T Du bist an akutem Sauerstoffmangel gestorben.
+. print"{home}"b$a$"{wht}{up}Willst du es nochmal"
+. printa$"versuchen?"
+. print"{home}{down}{lgrn}"b$
+A 60250 Ja.
+A 60260 Nein.
+Q
+
+L 60250
+. print"{blk}{clr}":run
+
+L 60260
+. print"{clr}":new
+
+L 60300 Was tun?
+. systu,iv:r=peek(2):return
+
+L 60400 Bier trinken
+. a=r-129:al=al+1:gosub61100
+C
+. ifal>=6goto60650
+. ifal<1goto60600
+. onalgoto60450,60500,60450,60550,60600
+
+L 60450
+T Du trinkst ein Bier. Hm, lecker! Jetzt geht es dir gleich viel besser.
+W !
+Q
+. return
+
+L 60500
+T Du trinkst ein Bier und rülpst laut. "Ups, sorry", sagst du,
+T obwohl gar niemand da ist.
+W !
+Q
+. return
+
+L 60550
+T Du trinkst ein Bier. Ja, das tut gut. Zumindest wirst du hier unten
+T nicht verdursten!
+W !
+Q
+. return
+
+L 60600
+T Du trinkst ein Bier.
+W !
+Q
+. return
+
+L 60650
+T Du trinkst ein Bier. Kurz verschwimmt alles vor deinen Augen, dann
+T kannst du wieder klar sehen.
+W !
+Q
+. return
+
+L 61000 Objekt hinzufügen
+. ifiv<9theniv(iv)=a:iv=iv+1:a=0
+. return
+
+L 61100 Objekt entfernen
+. ifa<ivthenfori=atoiv-1:iv(i)=iv(i+1):next:iv=iv-1
+. return
